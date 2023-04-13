@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/autobahn/20.7.1/autobahn.min.js"></script>
+    </head>
+    <body>
+            <h1> Group Name : {{groupname}}</h1>
+            <textarea id="chat-log" cols="100" rows="20"></textarea><br>
+            <input id="chat-message-input" type="text" size="100"><br>
+            <input id="chat-message-submit" type="button" value="Send"><br>
+
+            {{groupname|json_script:'group-name'}}
+        <script>
+            const groupName = JSON.parse(document.getElementById
+            ('group-name').textContent)
+            console.log(groupName)
+
+            var ws = new WebSocket('ws://localhost:8000/ws/awsc/'+groupName+'/')
+
+            ws.onopen = function(){
+                console.log('WebSocket Connection Open...')
+            }
+            ws.onmessage = function(event){
+                console.log('Message received from server...',event.data)
+                const data = JSON.parse(event.data)
+                console.log(data.message)
+                document.querySelector('#chat-log').value += (data.message + '\n')
+            }
+            ws.onclose = function(){
+                console.log('Websocket Connection closed unexpected')
+            }
+            document.getElementById("chat-message-submit").onclick = function(event){
+                const messageInputDom = document.getElementById("chat-message-input")
+                const message = messageInputDom.value
+                ws.send(JSON.stringify({
+                    'message':message
+                }))
+                messageInputDom.value = ''
+            }
+        </script>
+    </body>
+</html>
